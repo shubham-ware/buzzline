@@ -269,8 +269,13 @@
     }
 
     async function joinExistingRoom() {
-      const roomId = document.getElementById("join-room-id").value.trim();
+      let roomId = document.getElementById("join-room-id").value.trim();
       if (!roomId) { log("Please enter a Room ID", "error"); return; }
+      // Extract room ID from a pasted URL (e.g. http://localhost:3002/test-call.html?room=uuid)
+      try { const u = new URL(roomId); roomId = u.searchParams.get("room") || roomId; } catch {}
+      // Strip anything that isn't a UUID
+      const uuidMatch = roomId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      if (uuidMatch) roomId = uuidMatch[0];
 
       try {
         setStatus("Joining room...", "connecting");
