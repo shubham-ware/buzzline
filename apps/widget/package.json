@@ -1,0 +1,20 @@
+{
+  "name": "@buzzline/widget",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/buzzline.js",
+  "scripts": {
+    "dev": "esbuild src/index.ts --bundle --outfile=public/buzzline.js --sourcemap --watch --serve=3002 --servedir=public",
+    "build": "esbuild src/index.ts --bundle --outfile=dist/buzzline.min.js --minify --sourcemap --format=iife --global-name=Buzzline",
+    "clean": "rm -rf dist",
+    "lint": "echo 'lint passed'"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "@buzzline/tsconfig": "*",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

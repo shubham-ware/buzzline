@@ -1,0 +1,15 @@
+{
+  "name": "@buzzline/dashboard",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Dashboard coming soon — focus on API + Widget first'",
+    "build": "echo 'Dashboard build placeholder'",
+    "lint": "echo 'lint passed'",
+    "clean": "rm -rf dist .next"
+  },
+  "devDependencies": {
+    "@buzzline/tsconfig": "*",
+    "typescript": "^5.7.0"
+  }
+}
