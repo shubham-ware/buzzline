@@ -4,28 +4,27 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
-
-const PLAN_LIMITS: Record<string, number> = {
-  free: 100,
-  starter: 1000,
-  growth: 5000,
-  enterprise: Infinity,
-};
+import { PLAN_LIMITS, PlanName, UsageCurrentResponse } from "@buzzline/shared";
 
 export default function DashboardPage() {
   const user = getUser();
   const [projects, setProjects] = useState<any[]>([]);
+  const [usedMinutes, setUsedMinutes] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<any[]>("/projects/me").then((res) => {
-      if (res.success && res.data) setProjects(res.data);
+    Promise.all([
+      apiFetch<any[]>("/projects/me"),
+      apiFetch<UsageCurrentResponse>("/usage/current"),
+    ]).then(([projRes, usageRes]) => {
+      if (projRes.success && projRes.data) setProjects(projRes.data);
+      if (usageRes.success && usageRes.data) setUsedMinutes(usageRes.data.totalMinutes);
       setLoading(false);
     });
   }, []);
 
-  const planLimit = PLAN_LIMITS[user?.plan || "free"] || 100;
-  const usedMinutes = 0; // Wired to real data in Sprint 5
+  const plan = (user?.plan || "free") as PlanName;
+  const planLimit = PLAN_LIMITS[plan]?.minutesPerMonth || 100;
   const usagePercent = planLimit === Infinity ? 0 : Math.round((usedMinutes / planLimit) * 100);
 
   return (
@@ -34,7 +33,7 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold">Welcome back, {user?.name}</h1>
         <div className="mt-1 flex items-center gap-2">
           <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800 capitalize">
-            {user?.plan || "free"} plan
+            {plan} plan
           </span>
         </div>
       </div>

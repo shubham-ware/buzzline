@@ -7,6 +7,7 @@ import { PrismaService } from "../prisma.service";
 export class RoomsService {
   // Peer tracking stays in-memory (ephemeral, Redis in Phase 2)
   private roomPeers = new Map<string, Map<string, PeerInfo>>();
+  private peakParticipants = new Map<string, number>();
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -51,6 +52,12 @@ export class RoomsService {
     const peer: PeerInfo = { peerId, displayName, producers: [] };
     peers.set(peerId, peer);
 
+    // Track peak participant count for usage recording
+    const currentPeak = this.peakParticipants.get(roomId) || 0;
+    if (peers.size > currentPeak) {
+      this.peakParticipants.set(roomId, peers.size);
+    }
+
     // Mark room active on first peer
     if (peers.size === 1) {
       this.prisma.room.update({ where: { id: roomId }, data: { status: "active" } }).catch(() => {});
@@ -63,7 +70,26 @@ export class RoomsService {
     if (peers) {
       peers.delete(peerId);
       if (peers.size === 0) {
-        this.prisma.room.update({ where: { id: roomId }, data: { status: "closed", closedAt: new Date() } }).catch(() => {});
+        const closedAt = new Date();
+        const participantCount = this.peakParticipants.get(roomId) || 1;
+
+        this.prisma.room
+          .update({ where: { id: roomId }, data: { status: "closed", closedAt } })
+          .then((room) => {
+            const durationSeconds = Math.max(
+              0,
+              Math.floor((closedAt.getTime() - room.createdAt.getTime()) / 1000),
+            );
+            return this.prisma.usageRecord.create({
+              data: { roomId, durationSeconds, participantCount },
+            });
+          })
+          .catch((err) => {
+            console.error(`[Usage] Failed to record usage for room ${roomId}:`, err);
+          });
+
+        this.roomPeers.delete(roomId);
+        this.peakParticipants.delete(roomId);
       }
     }
   }

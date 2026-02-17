@@ -6,6 +6,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RoomsModule } from "./rooms/rooms.module";
 import { UsageModule } from "./usage/usage.module";
+import { BillingModule } from "./billing/billing.module";
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { UsageModule } from "./usage/usage.module";
     ProjectsModule,
     RoomsModule,
     UsageModule,
+    BillingModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

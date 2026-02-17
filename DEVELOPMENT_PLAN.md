@@ -288,28 +288,28 @@
 **Goal:** Track call minutes per project, enforce plan limits, prepare Stripe.
 
 ### Task 5.1: Usage Recording on Call End
-- [ ] When room closes (all peers left), calculate total duration
-- [ ] Create `UsageRecord` in database:
+- [x] When room closes (all peers left), calculate total duration
+- [x] Create `UsageRecord` in database:
   - `roomId`, `durationSeconds`, `participantCount`, `createdAt`
-- [ ] Duration = time from first peer join to last peer leave
+- [x] Duration = time from first peer join to last peer leave
 - **Verify:** After a call ends, `UsageRecord` row exists in database
 
 ### Task 5.2: Usage Aggregation API
-- [ ] `GET /api/v1/usage/current` — current month's total minutes for authenticated user
-- [ ] `GET /api/v1/usage/by-project` — breakdown by project
-- [ ] `GET /api/v1/usage/daily?days=30` — daily totals for charting
+- [x] `GET /api/v1/usage/current` — current month's total minutes for authenticated user
+- [x] `GET /api/v1/usage/by-project` — breakdown by project
+- [x] `GET /api/v1/usage/daily?days=30` — daily totals for charting
 - **Verify:** Endpoints return correct aggregated data after making test calls
 
 ### Task 5.3: Plan Limit Enforcement
-- [ ] Before room creation, check user's current month usage against plan limits
-- [ ] If over limit → return `{ success: false, error: { code: "USAGE_LIMIT", message: "..." } }`
-- [ ] Widget shows friendly "usage limit reached" message instead of crashing
+- [x] Before room creation, check user's current month usage against plan limits
+- [x] If over limit → return `{ success: false, error: { code: "USAGE_LIMIT", message: "..." } }`
+- [x] Widget shows friendly "usage limit reached" message instead of crashing
 - **Verify:** Free user with 100+ minutes used cannot create new rooms, gets clear error
 
 ### Task 5.4: Wire Dashboard to Real Usage Data
-- [ ] Dashboard overview → call `/usage/current` API
-- [ ] Usage page → call `/usage/daily` and `/usage/by-project` APIs
-- [ ] Show real progress bar: used / limit minutes
+- [x] Dashboard overview → call `/usage/current` API
+- [x] Usage page → call `/usage/daily` and `/usage/by-project` APIs
+- [x] Show real progress bar: used / limit minutes
 - **Verify:** After making calls, dashboard reflects accurate usage
 
 ### Task 5.5: Stripe Integration — Product Setup
@@ -317,21 +317,21 @@
 - [ ] Create products in Stripe Dashboard:
   - Starter: $29/mo
   - Growth: $79/mo
-- [ ] Add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to `.env`
-- [ ] Install: `npm install stripe -w @buzzline/api`
+- [x] Add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to `.env`
+- [x] Install: `npm install stripe -w @buzzline/api`
 - **Verify:** Products visible in Stripe Dashboard
 
 ### Task 5.6: Stripe Checkout Flow
-- [ ] `POST /api/v1/billing/create-checkout` — creates Stripe Checkout session
-- [ ] Returns checkout URL → dashboard redirects user to Stripe
-- [ ] Stripe webhook `checkout.session.completed` → update user's plan in database
-- [ ] Dashboard "Upgrade" button links to checkout
+- [x] `POST /api/v1/billing/create-checkout` — creates Stripe Checkout session
+- [x] Returns checkout URL → dashboard redirects user to Stripe
+- [x] Stripe webhook `checkout.session.completed` → update user's plan in database
+- [x] Dashboard "Upgrade" button links to checkout
 - **Verify:** Can complete test checkout, user's plan updates to "starter"
 
 ### Task 5.7: Stripe Customer Portal
-- [ ] `POST /api/v1/billing/portal` — creates Stripe portal session
-- [ ] User can manage subscription, update payment, cancel
-- [ ] Webhook handles `customer.subscription.updated` and `customer.subscription.deleted`
+- [x] `POST /api/v1/billing/portal` — creates Stripe portal session
+- [x] User can manage subscription, update payment, cancel
+- [x] Webhook handles `customer.subscription.updated` and `customer.subscription.deleted`
 - **Verify:** Can access portal, cancel subscription → plan reverts to "free"
 
 **Sprint 5 Deliverable:** Metered usage, plan enforcement, payment working. Commit: `feat: sprint 5 — usage tracking and Stripe billing`

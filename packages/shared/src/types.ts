@@ -72,5 +72,27 @@ export interface BuzzlineWidgetConfig {
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
-  error?: string;
+  error?: string | { code: string; message: string };
+}
+
+// --- Usage types ---
+
+export interface UsageCurrentResponse {
+  totalSeconds: number;
+  totalMinutes: number;
+}
+
+export interface UsageByProjectItem {
+  projectId: string;
+  projectName: string;
+  totalSeconds: number;
+  totalMinutes: number;
+  roomCount: number;
+}
+
+export interface UsageDailyItem {
+  date: string;
+  totalSeconds: number;
+  totalMinutes: number;
+  roomCount: number;
 }
