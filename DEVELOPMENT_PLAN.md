@@ -342,12 +342,14 @@
 
 **Goal:** Live on the internet, widget served from CDN, landing page exists.
 
-### Task 6.1: API Deployment — Fly.io
-- [ ] Create `Dockerfile` for `apps/api`
-- [ ] Create `fly.toml` config
-- [ ] `fly launch` → deploy to Fly.io
-- [ ] Set env vars: `DATABASE_URL`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, etc.
-- [ ] Verify health check: `curl https://api.buzzline.dev/api/v1/health`
+### Task 6.1: API Deployment — DigitalOcean Droplet + Docker
+- [x] Create `Dockerfile` for `apps/api`
+- [x] Create `docker-compose.yml` with nginx reverse proxy
+- [ ] Create DigitalOcean Droplet (Ubuntu 24.04, 2GB+ RAM)
+- [ ] Create DigitalOcean Managed PostgreSQL
+- [ ] Set env vars in `.env.production`
+- [ ] `docker compose up -d --build` on droplet
+- [ ] Verify health check: `curl https://api.YOUR_DOMAIN/api/v1/health`
 - **Verify:** API accessible at production URL, health check returns OK
 
 ### Task 6.2: Dashboard Deployment — Vercel
@@ -355,47 +357,36 @@
 - [ ] Set root directory to `apps/dashboard`
 - [ ] Set env vars: `NEXT_PUBLIC_API_URL`
 - [ ] Deploy
-- **Verify:** Dashboard accessible at `https://buzzline.dev` or `https://app.buzzline.dev`
+- **Verify:** Dashboard accessible at production URL
 
 ### Task 6.3: Widget CDN Deployment
-- [ ] Build widget: `npm run widget:build`
-- [ ] Upload `buzzline.min.js` to CDN (Cloudflare R2 / S3 + CloudFront)
-- [ ] Set up versioned URLs: `cdn.buzzline.dev/v1/widget.js`
-- [ ] Set CORS headers to allow any origin
-- [ ] Set long cache TTL with versioned filenames
-- **Verify:** `<script src="https://cdn.buzzline.dev/v1/widget.js">` loads correctly from any domain
+- [x] Build widget: `npm run widget:build`
+- [x] Widget served via nginx from droplet (`/widget/` path)
+- [ ] Optionally upload to DigitalOcean Spaces for dedicated CDN
+- **Verify:** Widget JS loads correctly from any domain
 
 ### Task 6.4: Domain & SSL
-- [ ] Register domain (buzzline.dev / buzzline.co / getbuzzline.com)
-- [ ] Configure DNS:
-  - `api.buzzline.dev` → Fly.io
-  - `buzzline.dev` / `app.buzzline.dev` → Vercel
-  - `cdn.buzzline.dev` → CDN
-- [ ] Verify SSL on all subdomains
-- **Verify:** All three subdomains resolve and serve over HTTPS
+- [ ] Register domain
+- [ ] Configure DNS A records to droplet IP
+- [ ] Run certbot for Let's Encrypt SSL
+- **Verify:** All subdomains resolve and serve over HTTPS
 
 ### Task 6.5: Landing Page
-- [ ] Create landing page at `/` (can be part of dashboard or separate):
-  - Hero: tagline + code snippet + demo video/gif
-  - Features: 3 blocks (easy integration, customizable, usage dashboard)
-  - Pricing: 4-tier table (Free, Starter, Growth, Enterprise)
-  - CTA: "Get Started Free" → signup
-  - Footer: docs link, GitHub, Twitter
+- [x] Create landing page at `/` with hero, code snippet, features, pricing, CTA
 - **Verify:** Landing page loads, CTA links to signup, pricing is accurate
 
 ### Task 6.6: End-to-End Production Test
 - [ ] Sign up on production dashboard
 - [ ] Create project, get API key
-- [ ] Create test HTML page using CDN widget script + production API key
-- [ ] Host test page anywhere (CodePen, Netlify)
-- [ ] Make a video call between two devices (phone + laptop)
+- [ ] Create test HTML page using widget script + production API key
+- [ ] Make a video call between two devices
 - **Verify:** Full flow works: signup → API key → embed widget → make call → see usage in dashboard
 
 ### Task 6.7: Monitoring & Error Tracking
-- [ ] Add basic request logging to API (request ID, duration, status)
-- [ ] Set up Fly.io log streaming
-- [ ] Add error boundary in widget (catch and report, don't crash host site)
-- [ ] Add `window.onerror` handler in widget for uncaught errors
+- [x] Add basic request logging to API (request ID, duration, status)
+- [x] Add error boundary in widget (catch and report, don't crash host site)
+- [x] Add `window.onerror` handler in widget for uncaught errors
+- [ ] Set up log monitoring on droplet
 - **Verify:** Can see API logs, widget errors don't break host page
 
 **Sprint 6 Deliverable:** Live product accessible to the public. Commit: `feat: sprint 6 — deployed and live`

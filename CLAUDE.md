@@ -77,13 +77,12 @@ buzzline/
 - WebSocket gateway handles both signaling AND will later handle MediaSoup transport negotiation.
 - Widget CSS is scoped with `.buzzline-` prefix to avoid conflicts with host sites.
 
-## Current Phase: Sprint 5 Complete (Usage Tracking & Billing)
+## Current Phase: Sprint 6 In Progress (Deploy & Launch)
 
-Completed: 1:1 video calls, PostgreSQL via Prisma, JWT auth, API key guard, Dashboard MVP, usage tracking, plan limits, Stripe billing.
-Next: Sprint 6 — Deployment & Launch.
+Completed: 1:1 video calls, PostgreSQL via Prisma, JWT auth, API key guard, Dashboard MVP, usage tracking, plan limits, Stripe billing, Dockerfile, docker-compose, nginx, landing page, request logging, widget error boundary.
+Remaining: Infrastructure setup (DigitalOcean droplet, managed DB, domain, Vercel), E2E production test.
 
 ### Upcoming
-- Deployment & launch (Sprint 6)
 - MediaSoup SFU integration (post-launch)
 - Redis for room state + pub/sub (post-launch)
 
