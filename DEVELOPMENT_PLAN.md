@@ -11,23 +11,23 @@
 **Goal:** Everything runs locally, health check passes, demo page loads.
 
 ### Task 1.1: Environment Setup
-- [ ] Extract tarball, run `npm install`
-- [ ] Copy `.env.example` → `apps/api/.env`
-- [ ] `git init && git add -A && git commit -m "init: buzzline monorepo"`
+- [x] Extract tarball, run `npm install`
+- [x] Copy `.env.example` → `apps/api/.env`
+- [x] `git init && git add -A && git commit -m "init: buzzline monorepo"`
 - **Verify:** `node -v` >= 18, `npm -v` >= 10, all deps installed without errors
 
 ### Task 1.2: Boot API Server
-- [ ] Run `npm run api:dev`
-- [ ] Fix any NestJS boot errors (missing deps, import paths)
+- [x] Run `npm run api:dev`
+- [x] Fix any NestJS boot errors (missing deps, import paths)
 - **Verify:** `curl http://localhost:4000/api/v1/health` returns `{ "status": "ok", "service": "buzzline-api" }`
 
 ### Task 1.3: Boot Widget Dev Server
-- [ ] Run `npm run widget:dev`
-- [ ] Fix any esbuild errors (import resolution, missing modules)
+- [x] Run `npm run widget:dev`
+- [x] Fix any esbuild errors (import resolution, missing modules)
 - **Verify:** Open `http://localhost:3002` — see the purple gradient demo page with floating video button in bottom-right
 
 ### Task 1.4: API Smoke Test — Room Creation
-- [ ] Test room creation endpoint via curl:
+- [x] Test room creation endpoint via curl:
   ```bash
   curl -X POST http://localhost:4000/api/v1/rooms \
     -H "Content-Type: application/json" \
@@ -36,7 +36,7 @@
 - **Verify:** Response contains `{ success: true, data: { roomId: "uuid", token: "uuid", expiresAt: "..." } }`
 
 ### Task 1.5: API Smoke Test — Project Creation
-- [ ] Test project creation:
+- [x] Test project creation:
   ```bash
   curl -X POST http://localhost:4000/api/v1/projects \
     -H "Content-Type: application/json" \
@@ -45,9 +45,9 @@
 - **Verify:** Response contains API key starting with `bz_`
 
 ### Task 1.6: WebSocket Connection Test
-- [ ] Open browser console on `localhost:3002`
-- [ ] Check for `[Buzzline] Widget initialized 🐝` in console
-- [ ] Click the floating video button — should request camera/mic permission
+- [x] Open browser console on `localhost:3002`
+- [x] Check for `[Buzzline] Widget initialized 🐝` in console
+- [x] Click the floating video button — should request camera/mic permission
 - **Verify:** Camera permission prompt appears. If denied gracefully, error callback fires.
 
 **Sprint 1 Deliverable:** API running, widget loading, endpoints responding. Commit: `feat: sprint 1 — boot and smoke test passing`
@@ -59,28 +59,28 @@
 **Goal:** Two browser tabs can have a live video call via localhost.
 
 ### Task 2.1: Fix Signaling Flow — Room Join
-- [ ] Widget creates room via REST → gets roomId + token
-- [ ] Widget connects to Socket.IO at `/signaling`
-- [ ] Widget emits `join-room` with roomId + token
-- [ ] Server validates token, adds peer, emits `room-joined` back
+- [x] Widget creates room via REST → gets roomId + token
+- [x] Widget connects to Socket.IO at `/signaling`
+- [x] Widget emits `join-room` with roomId + token
+- [x] Server validates token, adds peer, emits `room-joined` back
 - **Verify:** Console logs `🔌 Connected` and `👤 joined room` on server, `room-joined` event received on client
 
 ### Task 2.2: Fix ICE Candidate Routing
-- [ ] Current code sends ICE to `"broadcast"` — fix to route to specific peer
-- [ ] In `rooms.gateway.ts`: route ICE candidates to all other peers in the room (not by peerId)
-- [ ] Use Socket.IO room broadcasting: `client.to(roomId).emit("ice-candidate", ...)`
+- [x] Current code sends ICE to `"broadcast"` — fix to route to specific peer
+- [x] In `rooms.gateway.ts`: route ICE candidates to all other peers in the room (not by peerId)
+- [x] Use Socket.IO room broadcasting: `client.to(roomId).emit("ice-candidate", ...)`
 - **Verify:** ICE candidates flow between both tabs (check Network/WS tab in DevTools)
 
 ### Task 2.3: Fix Offer/Answer Flow
-- [ ] Tab A joins room → waits
-- [ ] Tab B joins room → server emits `peer-joined` to Tab A
-- [ ] Tab A creates offer → sends via signaling → Tab B receives
-- [ ] Tab B creates answer → sends via signaling → Tab A receives
-- [ ] Both set remote descriptions
+- [x] Tab A joins room → waits
+- [x] Tab B joins room → server emits `peer-joined` to Tab A
+- [x] Tab A creates offer → sends via signaling → Tab B receives
+- [x] Tab B creates answer → sends via signaling → Tab A receives
+- [x] Both set remote descriptions
 - **Verify:** `RTCPeerConnection.connectionState` reaches `"connected"` on both tabs
 
 ### Task 2.4: Create Test Page for Two Participants
-- [ ] Create `apps/widget/public/test-call.html` with:
+- [x] Create `apps/widget/public/test-call.html` with:
   - "Create Room" button → creates room, shows roomId + shareable link
   - "Join Room" input + button → joins existing room by ID
   - Local video preview before joining
@@ -88,22 +88,22 @@
 - **Verify:** Can create room in Tab A, copy roomId, paste in Tab B, both see each other's video
 
 ### Task 2.5: Handle Edge Cases
-- [ ] Tab closes → other tab gets `peer-left` event, UI resets to idle
-- [ ] Camera denied → show friendly error, don't crash widget
-- [ ] Room full (3rd tab tries to join 2-person room) → show "room full" error
-- [ ] Invalid token → show "invalid token" error
+- [x] Tab closes → other tab gets `peer-left` event, UI resets to idle
+- [x] Camera denied → show friendly error, don't crash widget
+- [x] Room full (3rd tab tries to join 2-person room) → show "room full" error
+- [x] Invalid token → show "invalid token" error
 - **Verify:** Each edge case handled gracefully without console errors or frozen UI
 
 ### Task 2.6: Call Timer & Duration Tracking
-- [ ] Timer starts when remote stream received (not when room joined)
-- [ ] Timer stops on call end
-- [ ] Duration passed to `onCallEnd` callback
+- [x] Timer starts when remote stream received (not when room joined)
+- [x] Timer stops on call end
+- [x] Duration passed to `onCallEnd` callback
 - **Verify:** Timer shows accurate elapsed time, duration in callback matches
 
 ### Task 2.7: Mute/Camera Toggle
-- [ ] Mute button toggles audio track `enabled`
-- [ ] Camera button toggles video track `enabled`
-- [ ] Button UI reflects current state (toggled styling)
+- [x] Mute button toggles audio track `enabled`
+- [x] Camera button toggles video track `enabled`
+- [x] Button UI reflects current state (toggled styling)
 - **Verify:** Other tab stops hearing audio / seeing video when toggled
 
 **Sprint 2 Deliverable:** Working 1:1 video call between two browser tabs. Commit: `feat: sprint 2 — working 1:1 video call`

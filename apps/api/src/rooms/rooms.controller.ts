@@ -24,4 +24,15 @@ export class RoomsController {
   getPeers(@Param("id") id: string): ApiResponse {
     return { success: true, data: this.roomsService.getPeers(id) };
   }
+
+  @Post(":id/join")
+  @HttpCode(HttpStatus.OK)
+  joinRoom(@Param("id") id: string): ApiResponse<CreateRoomResponse> {
+    try {
+      const result = this.roomsService.joinRoom(id);
+      return { success: true, data: result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
 }

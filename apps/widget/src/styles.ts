@@ -24,6 +24,8 @@ export function injectStyles(brandColor: string): void {
     .buzzline-btn-mute:hover, .buzzline-btn-camera:hover { background: rgba(255,255,255,0.2); }
     .buzzline-btn-end { background: #ef4444; color: white; }
     .buzzline-btn-end:hover { background: #dc2626; }
+    .buzzline-btn-toggled { background: #ef4444 !important; }
+    .buzzline-btn-toggled:hover { background: #dc2626 !important; }
   `;
   document.head.appendChild(style);
 }

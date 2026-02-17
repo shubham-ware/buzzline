@@ -9,3 +9,7 @@ dist/
 *.swp
 coverage/
 npm-debug.log*
+
+# Dev build artifacts
+apps/widget/public/buzzline.js
+apps/widget/public/buzzline.js.map

@@ -67,4 +67,16 @@ export class RoomsService {
     const peers = this.roomPeers.get(roomId);
     return peers ? Array.from(peers.values()) : [];
   }
+
+  joinRoom(roomId: string): CreateRoomResponse {
+    const room = this.getRoom(roomId);
+    if (room.status === "closed") throw new Error("Room is closed");
+    const peers = this.roomPeers.get(roomId);
+    if (peers && peers.size >= room.maxParticipants) throw new Error("Room is full");
+
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    this.tokens.set(token, { roomId, expiresAt });
+    return { roomId, token, expiresAt: expiresAt.toISOString() };
+  }
 }
