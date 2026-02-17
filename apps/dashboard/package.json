@@ -3,13 +3,25 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "echo 'Dashboard coming soon — focus on API + Widget first'",
-    "build": "echo 'Dashboard build placeholder'",
-    "lint": "echo 'lint passed'",
-    "clean": "rm -rf dist .next"
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "clean": "rm -rf .next"
   },
   "devDependencies": {
     "@buzzline/tsconfig": "*",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^22.19.11",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   }
 }

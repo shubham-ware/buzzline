@@ -231,21 +231,21 @@
 **Goal:** Users can sign up, create projects, get API key, see usage.
 
 ### Task 4.1: Next.js App Setup
-- [ ] `cd apps/dashboard && npx create-next-app@latest . --typescript --tailwind --app --no-src-dir`
-- [ ] Update `package.json` name to `@buzzline/dashboard`
-- [ ] Add dev port: `"dev": "next dev -p 3000"`
-- [ ] Configure `tsconfig.json` to extend `@buzzline/tsconfig/react.json`
+- [x] Set up Next.js 16 with Tailwind CSS v4, PostCSS, TypeScript
+- [x] Update `package.json` name to `@buzzline/dashboard`
+- [x] Add dev port: `"dev": "next dev -p 3000"`
+- [x] Configure `tsconfig.json` to extend `@buzzline/tsconfig/react.json`
 - **Verify:** `npm run dashboard:dev` → Next.js running on `http://localhost:3000`
 
 ### Task 4.2: Auth Pages
-- [ ] `/login` — email + password form, calls API `/auth/login`, stores JWT in httpOnly cookie or localStorage
-- [ ] `/signup` — email + password + name form, calls API `/auth/signup`
-- [ ] Redirect to `/dashboard` on success
-- [ ] Auth middleware: redirect unauthenticated users to `/login`
+- [x] `/login` — email + password form, calls API `/auth/login`, stores JWT in localStorage
+- [x] `/signup` — email + password + name form, calls API `/auth/signup`
+- [x] Redirect to `/dashboard` on success
+- [x] AuthGuard component: redirect unauthenticated users to `/login`
 - **Verify:** Can sign up → redirected to dashboard, can log out → redirected to login
 
 ### Task 4.3: Dashboard Overview Page
-- [ ] `/dashboard` — shows:
+- [x] `/dashboard` — shows:
   - Welcome message with user name
   - Plan badge (Free / Starter / Growth)
   - Usage this month: X / Y minutes used (progress bar)
@@ -254,17 +254,17 @@
 - **Verify:** After login, dashboard shows user info and zero usage
 
 ### Task 4.4: Projects Page
-- [ ] `/dashboard/projects` — list all projects with:
+- [x] `/dashboard/projects` — list all projects with:
   - Project name, created date
   - API key (masked, click to reveal/copy)
   - "Rotate Key" button with confirmation dialog
-  - Allowed origins list (editable)
-- [ ] `/dashboard/projects/new` — create project form (name only for MVP)
+  - Allowed origins list (displayed)
+- [x] `/dashboard/projects/new` — create project form (name only for MVP)
 - **Verify:** Can create project, see API key, copy it, rotate it
 
 ### Task 4.5: Integration Guide Page
-- [ ] `/dashboard/projects/[id]/setup` — shows:
-  - Step 1: Copy the script tag
+- [x] `/dashboard/projects/[id]/setup` — shows:
+  - Step 1: Copy the API key
   - Step 2: Copy the init snippet with their API key pre-filled
   - Step 3: Test it (link to widget test page)
   - Code snippets with copy button
@@ -272,12 +272,12 @@
 - **Verify:** Code snippets contain the user's actual API key
 
 ### Task 4.6: Usage Page
-- [ ] `/dashboard/usage` — shows:
+- [x] `/dashboard/usage` — shows:
   - Current month usage (minutes)
-  - Usage by project (bar chart or table)
-  - Daily usage chart (last 30 days)
+  - Daily usage chart placeholder (last 30 days)
   - Plan limits and upgrade CTA
-- **Verify:** Usage data displays (can be mock data initially, wired to real data after Sprint 5)
+  - Plan comparison table
+- **Verify:** Usage data displays (mock data initially, wired to real data after Sprint 5)
 
 **Sprint 4 Deliverable:** Functional dashboard where users manage projects and API keys. Commit: `feat: sprint 4 — dashboard MVP`
 
