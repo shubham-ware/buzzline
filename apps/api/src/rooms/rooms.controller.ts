@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus, UseGuards, Req } from "@nestjs/common";
 import { RoomsService } from "./rooms.service";
 import { CreateRoomRequest, ApiResponse, CreateRoomResponse } from "@buzzline/shared";
+import { ApiKeyGuard } from "../auth/api-key.guard";
 
 @Controller("rooms")
 export class RoomsController {
@@ -8,14 +9,15 @@ export class RoomsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: CreateRoomRequest): ApiResponse<CreateRoomResponse> {
-    const room = this.roomsService.createRoom(body);
+  @UseGuards(ApiKeyGuard)
+  async create(@Req() req: any, @Body() body: Omit<CreateRoomRequest, "projectId">): Promise<ApiResponse<CreateRoomResponse>> {
+    const room = await this.roomsService.createRoom({ ...body, projectId: req.project.id });
     return { success: true, data: room };
   }
 
   @Get(":id")
-  getRoom(@Param("id") id: string): ApiResponse {
-    const room = this.roomsService.getRoom(id);
+  async getRoom(@Param("id") id: string): Promise<ApiResponse> {
+    const room = await this.roomsService.getRoom(id);
     const peers = this.roomsService.getPeers(id);
     return { success: true, data: { ...room, participants: peers.length, peers } };
   }
@@ -27,12 +29,8 @@ export class RoomsController {
 
   @Post(":id/join")
   @HttpCode(HttpStatus.OK)
-  joinRoom(@Param("id") id: string): ApiResponse<CreateRoomResponse> {
-    try {
-      const result = this.roomsService.joinRoom(id);
-      return { success: true, data: result };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+  async joinRoom(@Param("id") id: string): Promise<ApiResponse<CreateRoomResponse>> {
+    const result = await this.roomsService.joinRoom(id);
+    return { success: true, data: result };
   }
 }

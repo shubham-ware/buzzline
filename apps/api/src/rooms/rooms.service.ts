@@ -1,54 +1,60 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-import { Room, CreateRoomRequest, CreateRoomResponse, PeerInfo } from "@buzzline/shared";
+import { PeerInfo, CreateRoomRequest, CreateRoomResponse } from "@buzzline/shared";
+import { PrismaService } from "../prisma.service";
 
 @Injectable()
 export class RoomsService {
-  private rooms = new Map<string, Room>();
+  // Peer tracking stays in-memory (ephemeral, Redis in Phase 2)
   private roomPeers = new Map<string, Map<string, PeerInfo>>();
-  private tokens = new Map<string, { roomId: string; expiresAt: Date }>();
 
-  createRoom(request: CreateRoomRequest): CreateRoomResponse {
-    const roomId = uuidv4();
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createRoom(request: CreateRoomRequest): Promise<CreateRoomResponse> {
     const token = uuidv4();
-    const now = new Date();
-    const expiresAt = request.expiresInMinutes
-      ? new Date(now.getTime() + request.expiresInMinutes * 60 * 1000)
-      : new Date(now.getTime() + 60 * 60 * 1000);
+    const tokenExpiresAt = request.expiresInMinutes
+      ? new Date(Date.now() + request.expiresInMinutes * 60 * 1000)
+      : new Date(Date.now() + 60 * 60 * 1000);
 
-    const room: Room = {
-      id: roomId, projectId: request.projectId, createdAt: now, expiresAt,
-      maxParticipants: request.maxParticipants || 2, status: "waiting", metadata: request.metadata,
-    };
+    const room = await this.prisma.room.create({
+      data: {
+        projectId: request.projectId,
+        maxParticipants: request.maxParticipants || 2,
+        metadata: (request.metadata as any) ?? undefined,
+        token,
+        tokenExpiresAt,
+      },
+    });
 
-    this.rooms.set(roomId, room);
-    this.roomPeers.set(roomId, new Map());
-    this.tokens.set(token, { roomId, expiresAt });
-    return { roomId, token, expiresAt: expiresAt.toISOString() };
+    this.roomPeers.set(room.id, new Map());
+    return { roomId: room.id, token, expiresAt: tokenExpiresAt.toISOString() };
   }
 
-  getRoom(roomId: string): Room {
-    const room = this.rooms.get(roomId);
+  async getRoom(roomId: string) {
+    const room = await this.prisma.room.findUnique({ where: { id: roomId } });
     if (!room) throw new NotFoundException(`Room ${roomId} not found`);
     return room;
   }
 
-  validateToken(token: string): string | null {
-    const entry = this.tokens.get(token);
-    if (!entry) return null;
-    if (new Date() > entry.expiresAt) { this.tokens.delete(token); return null; }
-    return entry.roomId;
+  async validateToken(token: string): Promise<string | null> {
+    const room = await this.prisma.room.findUnique({ where: { token } });
+    if (!room) return null;
+    if (new Date() > room.tokenExpiresAt) return null;
+    return room.id;
   }
 
-  addPeer(roomId: string, peerId: string, displayName?: string): PeerInfo {
-    const peers = this.roomPeers.get(roomId);
-    if (!peers) throw new NotFoundException(`Room ${roomId} not found`);
-    const room = this.getRoom(roomId);
-    if (peers.size >= room.maxParticipants) throw new Error("Room is full");
+  addPeer(roomId: string, peerId: string, maxParticipants: number, displayName?: string): PeerInfo {
+    let peers = this.roomPeers.get(roomId);
+    if (!peers) { peers = new Map(); this.roomPeers.set(roomId, peers); }
+    if (peers.size >= maxParticipants) throw new BadRequestException("Room is full");
 
     const peer: PeerInfo = { peerId, displayName, producers: [] };
     peers.set(peerId, peer);
-    if (room.status === "waiting") { room.status = "active"; this.rooms.set(roomId, room); }
+
+    // Mark room active on first peer
+    if (peers.size === 1) {
+      this.prisma.room.update({ where: { id: roomId }, data: { status: "active" } }).catch(() => {});
+    }
     return peer;
   }
 
@@ -57,8 +63,7 @@ export class RoomsService {
     if (peers) {
       peers.delete(peerId);
       if (peers.size === 0) {
-        const room = this.rooms.get(roomId);
-        if (room) { room.status = "closed"; this.rooms.set(roomId, room); }
+        this.prisma.room.update({ where: { id: roomId }, data: { status: "closed", closedAt: new Date() } }).catch(() => {});
       }
     }
   }
@@ -68,15 +73,21 @@ export class RoomsService {
     return peers ? Array.from(peers.values()) : [];
   }
 
-  joinRoom(roomId: string): CreateRoomResponse {
-    const room = this.getRoom(roomId);
-    if (room.status === "closed") throw new Error("Room is closed");
+  async joinRoom(roomId: string): Promise<CreateRoomResponse> {
+    const room = await this.getRoom(roomId);
+    if (room.status === "closed") throw new BadRequestException("Room is closed");
     const peers = this.roomPeers.get(roomId);
-    if (peers && peers.size >= room.maxParticipants) throw new Error("Room is full");
+    if (peers && peers.size >= room.maxParticipants) throw new BadRequestException("Room is full");
 
     const token = uuidv4();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-    this.tokens.set(token, { roomId, expiresAt });
-    return { roomId, token, expiresAt: expiresAt.toISOString() };
+    const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Update room token for the new participant
+    await this.prisma.room.update({
+      where: { id: roomId },
+      data: { token, tokenExpiresAt },
+    });
+
+    return { roomId, token, expiresAt: tokenExpiresAt.toISOString() };
   }
 }

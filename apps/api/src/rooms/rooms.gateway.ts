@@ -25,15 +25,16 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(SignalingEvent.JOIN_ROOM)
-  handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() payload: JoinRoomPayload) {
+  async handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() payload: JoinRoomPayload) {
     const { roomId, token, displayName } = payload;
-    const validRoomId = this.roomsService.validateToken(token);
+    const validRoomId = await this.roomsService.validateToken(token);
     if (!validRoomId || validRoomId !== roomId) {
       client.emit(SignalingEvent.ERROR, { code: "INVALID_TOKEN", message: "Invalid or expired token" });
       return;
     }
     try {
-      this.roomsService.addPeer(roomId, client.id, displayName);
+      const room = await this.roomsService.getRoom(roomId);
+      this.roomsService.addPeer(roomId, client.id, room.maxParticipants, displayName);
       client.join(roomId);
       this.socketRooms.set(client.id, roomId);
       const peers = this.roomsService.getPeers(roomId).filter(p => p.peerId !== client.id);

@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus, UseGuards, Req } from "@nestjs/common";
 import { ProjectsService } from "./projects.service";
 import { ApiResponse } from "@buzzline/shared";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 @Controller("projects")
 export class ProjectsController {
@@ -8,22 +9,29 @@ export class ProjectsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: { userId: string; name: string }): ApiResponse {
-    return { success: true, data: this.projectsService.createProject(body.userId, body.name) };
+  @UseGuards(JwtAuthGuard)
+  async create(@Req() req: any, @Body() body: { name: string }): Promise<ApiResponse> {
+    const project = await this.projectsService.createProject(req.user.userId, body.name);
+    return { success: true, data: project };
   }
 
-  @Get("user/:userId")
-  getUserProjects(@Param("userId") userId: string): ApiResponse {
-    return { success: true, data: this.projectsService.getUserProjects(userId) };
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  async getMyProjects(@Req() req: any): Promise<ApiResponse> {
+    const projects = await this.projectsService.getUserProjects(req.user.userId);
+    return { success: true, data: projects };
   }
 
   @Get(":id")
-  getProject(@Param("id") id: string): ApiResponse {
-    return { success: true, data: this.projectsService.getProject(id) };
+  async getProject(@Param("id") id: string): Promise<ApiResponse> {
+    const project = await this.projectsService.getProject(id);
+    return { success: true, data: project };
   }
 
   @Post(":id/rotate-key")
-  rotateKey(@Param("id") id: string): ApiResponse {
-    return { success: true, data: { apiKey: this.projectsService.rotateApiKey(id) } };
+  @UseGuards(JwtAuthGuard)
+  async rotateKey(@Param("id") id: string): Promise<ApiResponse> {
+    const apiKey = await this.projectsService.rotateApiKey(id);
+    return { success: true, data: { apiKey } };
   }
 }

@@ -114,15 +114,15 @@
 
 **Goal:** Persistent storage, user accounts, API key validation.
 
-### Task 3.1: PostgreSQL Setup with Neon
-- [ ] Create Neon project at neon.tech
-- [ ] Add `DATABASE_URL` to `.env`
-- [ ] Install Prisma: `npm install prisma @prisma/client -w @buzzline/api`
-- [ ] Init Prisma: `cd apps/api && npx prisma init`
-- **Verify:** `npx prisma db push` connects successfully to Neon
+### Task 3.1: PostgreSQL Setup (Local)
+- [x] Set up local PostgreSQL via Homebrew
+- [x] Add `DATABASE_URL` to `.env`
+- [x] Install Prisma: `npm install prisma @prisma/client`
+- [x] Init Prisma: `cd apps/api && npx prisma init`
+- **Verify:** `npx prisma db push` connects successfully to local PostgreSQL
 
 ### Task 3.2: Database Schema
-- [ ] Create Prisma schema with models:
+- [x] Create Prisma schema with models:
   ```prisma
   model User {
     id        String    @id @default(uuid())
@@ -169,26 +169,26 @@
     createdAt        DateTime @default(now())
   }
   ```
-- [ ] Run `npx prisma db push`
-- **Verify:** Tables created in Neon dashboard, `npx prisma studio` shows empty tables
+- [x] Run `npx prisma db push`
+- **Verify:** Tables created in local PostgreSQL, `npx prisma studio` shows empty tables
 
 ### Task 3.3: Migrate RoomsService to Prisma
-- [ ] Replace `Map<string, Room>` with Prisma queries
-- [ ] `createRoom()` → `prisma.room.create()`
-- [ ] `getRoom()` → `prisma.room.findUniqueOrThrow()`
-- [ ] `validateToken()` → `prisma.room.findUnique({ where: { token } })`
-- [ ] Keep in-memory `roomPeers` Map (peer tracking is ephemeral, Redis later)
+- [x] Replace `Map<string, Room>` with Prisma queries
+- [x] `createRoom()` → `prisma.room.create()`
+- [x] `getRoom()` → `prisma.room.findUniqueOrThrow()`
+- [x] `validateToken()` → `prisma.room.findUnique({ where: { token } })`
+- [x] Keep in-memory `roomPeers` Map (peer tracking is ephemeral, Redis later)
 - **Verify:** Create room via curl → verify row exists in `npx prisma studio`
 
 ### Task 3.4: Migrate ProjectsService to Prisma
-- [ ] Replace `Map<string, Project>` with Prisma queries
-- [ ] `createProject()` → `prisma.project.create()`
-- [ ] `getProjectByApiKey()` → `prisma.project.findUnique({ where: { apiKey } })`
+- [x] Replace `Map<string, Project>` with Prisma queries
+- [x] `createProject()` → `prisma.project.create()`
+- [x] `getProjectByApiKey()` → `prisma.project.findUnique({ where: { apiKey } })`
 - **Verify:** Create project via curl → verify in Prisma Studio, API key lookup works
 
 ### Task 3.5: Auth Module — Signup & Login
-- [ ] Install: `npm install bcryptjs jsonwebtoken -w @buzzline/api`
-- [ ] Create `auth/` module with:
+- [x] Install: `npm install bcryptjs jsonwebtoken`
+- [x] Create `auth/` module with:
   - `POST /api/v1/auth/signup` — email, password, name → create user, return JWT
   - `POST /api/v1/auth/login` — email, password → validate, return JWT
   - JWT payload: `{ userId, email, plan }`
@@ -209,17 +209,17 @@
   ```
 
 ### Task 3.6: JWT Auth Guard
-- [ ] Create `JwtAuthGuard` — extracts Bearer token, validates, injects `req.user`
-- [ ] Protect routes: `POST /projects`, `GET /projects/user/:userId`
-- [ ] Projects auto-associate with authenticated user (no userId in body)
+- [x] Create `JwtAuthGuard` — extracts Bearer token, validates, injects `req.user`
+- [x] Protect routes: `POST /projects`, `GET /projects/me`, `POST /projects/:id/rotate-key`
+- [x] Projects auto-associate with authenticated user (no userId in body)
 - **Verify:** Unauthenticated request returns 401, authenticated request creates project tied to user
 
 ### Task 3.7: API Key Guard for Widget Routes
-- [ ] Create `ApiKeyGuard` — extracts `Authorization: Bearer bz_xxx`
-- [ ] Looks up project by API key
-- [ ] Validates `allowedOrigins` against request `Origin` header
-- [ ] Injects `req.project` into request
-- [ ] Protect: `POST /rooms` (widget creates rooms with API key, not JWT)
+- [x] Create `ApiKeyGuard` — extracts `X-API-Key` header or `Authorization: Bearer bz_xxx`
+- [x] Looks up project by API key
+- [x] Validates `allowedOrigins` against request `Origin` header
+- [x] Injects `req.project` into request
+- [x] Protect: `POST /rooms` (widget creates rooms with API key, not JWT)
 - **Verify:** Room creation with valid `bz_` key works, invalid key returns 401, wrong origin returns 403
 
 **Sprint 3 Deliverable:** Persistent data, user accounts, secured endpoints. Commit: `feat: sprint 3 — database, auth, API key validation`

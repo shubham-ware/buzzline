@@ -1,47 +1,38 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { v4 as uuidv4 } from "uuid";
-import { Project, ProjectSettings } from "@buzzline/shared";
 import { randomBytes } from "crypto";
+import { PrismaService } from "../prisma.service";
 
 @Injectable()
 export class ProjectsService {
-  private projects = new Map<string, Project>();
-  private apiKeyIndex = new Map<string, string>();
+  constructor(private readonly prisma: PrismaService) {}
 
-  createProject(userId: string, name: string, settings?: Partial<ProjectSettings>): Project {
-    const id = uuidv4();
+  async createProject(userId: string, name: string, settings?: Record<string, any>) {
     const apiKey = `bz_${randomBytes(24).toString("hex")}`;
-    const project: Project = {
-      id, name, userId, apiKey, allowedOrigins: ["*"], createdAt: new Date(),
-      settings: { maxParticipants: 2, recordingEnabled: false, brandColor: "#6366f1", position: "bottom-right", ...settings },
-    };
-    this.projects.set(id, project);
-    this.apiKeyIndex.set(apiKey, id);
-    return project;
+    const defaultSettings = { maxParticipants: 2, recordingEnabled: false, brandColor: "#6366f1", position: "bottom-right", ...settings };
+
+    return this.prisma.project.create({
+      data: { name, userId, apiKey, settings: defaultSettings },
+    });
   }
 
-  getProject(id: string): Project {
-    const project = this.projects.get(id);
+  async getProject(id: string) {
+    const project = await this.prisma.project.findUnique({ where: { id } });
     if (!project) throw new NotFoundException(`Project ${id} not found`);
     return project;
   }
 
-  getProjectByApiKey(apiKey: string): Project | null {
-    const projectId = this.apiKeyIndex.get(apiKey);
-    return projectId ? this.projects.get(projectId) || null : null;
+  async getProjectByApiKey(apiKey: string) {
+    return this.prisma.project.findUnique({ where: { apiKey } });
   }
 
-  getUserProjects(userId: string): Project[] {
-    return Array.from(this.projects.values()).filter(p => p.userId === userId);
+  async getUserProjects(userId: string) {
+    return this.prisma.project.findMany({ where: { userId } });
   }
 
-  rotateApiKey(projectId: string): string {
-    const project = this.getProject(projectId);
-    this.apiKeyIndex.delete(project.apiKey);
+  async rotateApiKey(projectId: string) {
+    const project = await this.getProject(projectId);
     const newApiKey = `bz_${randomBytes(24).toString("hex")}`;
-    project.apiKey = newApiKey;
-    this.projects.set(projectId, project);
-    this.apiKeyIndex.set(newApiKey, projectId);
+    await this.prisma.project.update({ where: { id: project.id }, data: { apiKey: newApiKey } });
     return newApiKey;
   }
 }
