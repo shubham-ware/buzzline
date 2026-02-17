@@ -15,5 +15,12 @@ export async function apiFetch<T = any>(
     },
   });
 
-  return res.json();
+  const json = await res.json();
+
+  // NestJS exceptions return { message, error, statusCode } — normalize to ApiResponse shape
+  if (!res.ok && json.success === undefined) {
+    return { success: false, error: { code: json.error || "ERROR", message: json.message || "Request failed" } };
+  }
+
+  return json;
 }
