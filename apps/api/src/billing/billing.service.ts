@@ -6,13 +6,21 @@ import { PlanName } from "@buzzline/shared";
 
 @Injectable()
 export class BillingService {
-  private stripe: Stripe;
+  private stripe: Stripe | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
   ) {
-    this.stripe = new Stripe(this.config.get<string>("STRIPE_SECRET_KEY", ""));
+    const key = this.config.get<string>("STRIPE_SECRET_KEY");
+    if (key) {
+      this.stripe = new Stripe(key);
+    }
+  }
+
+  private requireStripe(): Stripe {
+    if (!this.stripe) throw new BadRequestException("Billing is not configured");
+    return this.stripe;
   }
 
   async createCheckoutSession(userId: string, plan: "starter" | "growth"): Promise<{ url: string }> {
@@ -21,7 +29,7 @@ export class BillingService {
 
     let customerId = user.stripeCustomerId;
     if (!customerId) {
-      const customer = await this.stripe.customers.create({
+      const customer = await this.requireStripe().customers.create({
         email: user.email,
         name: user.name,
         metadata: { userId: user.id },
@@ -41,7 +49,7 @@ export class BillingService {
 
     const dashboardUrl = this.config.get<string>("DASHBOARD_URL", "http://localhost:3000");
 
-    const session = await this.stripe.checkout.sessions.create({
+    const session = await this.requireStripe().checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
@@ -60,7 +68,7 @@ export class BillingService {
 
     const dashboardUrl = this.config.get<string>("DASHBOARD_URL", "http://localhost:3000");
 
-    const session = await this.stripe.billingPortal.sessions.create({
+    const session = await this.requireStripe().billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${dashboardUrl}/dashboard/usage`,
     });
@@ -73,7 +81,7 @@ export class BillingService {
     let event: Stripe.Event;
 
     try {
-      event = this.stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = this.requireStripe().webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       throw new BadRequestException(`Webhook signature verification failed: ${(err as Error).message}`);
     }
@@ -94,7 +102,7 @@ export class BillingService {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const customer = await this.stripe.customers.retrieve(subscription.customer as string);
+        const customer = await this.requireStripe().customers.retrieve(subscription.customer as string);
         if (customer && !customer.deleted) {
           const userId = customer.metadata.userId;
           if (userId) {
@@ -110,7 +118,7 @@ export class BillingService {
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const customer = await this.stripe.customers.retrieve(subscription.customer as string);
+        const customer = await this.requireStripe().customers.retrieve(subscription.customer as string);
         if (customer && !customer.deleted) {
           const userId = customer.metadata.userId;
           if (userId) {
